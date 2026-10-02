@@ -1,0 +1,23 @@
+[project]
+name = "doc-pipeline"
+version = "0.1.0"
+description = ""
+readme = "README.md"
+authors = [
+    { name = "ChewCW", email = "chwai87@gmail.com" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "pdfplumber>=0.11.10",
+    "pillow>=12.3.0",
+    "pymupdf>=1.28.2",
+    "pypdfium2>=5.13.0",
+    "pytesseract>=0.3.13",
+]
+
+[project.scripts]
+doc-pipeline = "doc_pipeline:main"
+
+[build-system]
+requires = ["uv_build>=0.12.6,<0.13.0"]
+build-backend = "uv_build"
