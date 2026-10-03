@@ -1,0 +1,634 @@
+{
+  "KUL23-XX-NV5-XX-SH-U-006001-WS4_BMS_EPMS_CPMS_Control_Panel_Schedule.pdf": {
+    "basename": "KUL23-XX-NV5-XX-SH-U-006001-WS4_BMS_EPMS_CPMS_Control_Panel_Schedule.pdf",
+    "pages": [
+      {
+        "classifier_confidence": 0.6,
+        "page": 1,
+        "quality_tier": "clean",
+        "route": "E3",
+        "signals": {
+          "area_pt2": 501211.81039248034,
+          "embedded_font_count": 3,
+          "has_table_via_pdfplumber": false,
+          "height_pt": 841.9199829101562,
+          "image_count": 2,
+          "page_number": 0,
+          "text_chars": 298,
+          "title_block_hits": 1,
+          "vector_path_count": 6,
+          "width_pt": 595.3200073242188
+        }
+      },
+      {
+        "classifier_confidence": 0.4,
+        "page": 2,
+        "quality_tier": "clean",
+        "route": "unknown",
+        "signals": {
+          "area_pt2": 501211.81039248034,
+          "embedded_font_count": 3,
+          "has_table_via_pdfplumber": false,
+          "height_pt": 841.9199829101562,
+          "image_count": 0,
+          "page_number": 1,
+          "text_chars": 203,
+          "title_block_hits": 1,
+          "vector_path_count": 60,
+          "width_pt": 595.3200073242188
+        }
+      },
+      {
+        "classifier_confidence": 0.75,
+        "page": 3,
+        "quality_tier": "clean",
+        "route": "E2",
+        "signals": {
+          "area_pt2": 484704.0,
+          "embedded_font_count": 2,
+          "has_table_via_pdfplumber": true,
+          "height_pt": 612.0,
+          "image_count": 0,
+          "page_number": 2,
+          "text_chars": 2759,
+          "title_block_hits": 0,
+          "vector_path_count": 2,
+          "width_pt": 792.0
+        }
+      },
+      {
+        "classifier_confidence": 0.75,
+        "page": 4,
+        "quality_tier": "clean",
+        "route": "E2",
+        "signals": {
+          "area_pt2": 484704.0,
+          "embedded_font_count": 2,
+          "has_table_via_pdfplumber": true,
+          "height_pt": 612.0,
+          "image_count": 0,
+          "page_number": 3,
+          "text_chars": 896,
+          "title_block_hits": 0,
+          "vector_path_count": 4,
+          "width_pt": 792.0
+        }
+      }
+    ]
+  },
+  "SP25856-MAS-CAS200-IO LIST REV.B.pdf": {
+    "basename": "SP25856-MAS-CAS200-IO LIST REV.B.pdf",
+    "pages": [
+      {
+        "classifier_confidence": 0.75,
+        "page": 1,
+        "quality_tier": "clean",
+        "route": "E2",
+        "signals": {
+          "area_pt2": 1002322.5944979489,
+          "embedded_font_count": 4,
+          "has_table_via_pdfplumber": false,
+          "height_pt": 841.9199829101562,
+          "image_count": 1,
+          "page_number": 0,
+          "text_chars": 2534,
+          "title_block_hits": 0,
+          "vector_path_count": 3061,
+          "width_pt": 1190.52001953125
+        }
+      },
+      {
+        "classifier_confidence": 0.75,
+        "page": 2,
+        "quality_tier": "clean",
+        "route": "E2",
+        "signals": {
+          "area_pt2": 1002322.5944979489,
+          "embedded_font_count": 4,
+          "has_table_via_pdfplumber": false,
+          "height_pt": 841.9199829101562,
+          "image_count": 1,
+          "page_number": 1,
+          "text_chars": 2661,
+          "title_block_hits": 0,
+          "vector_path_count": 3117,
+          "width_pt": 1190.52001953125
+        }
+      },
+      {
+        "classifier_confidence": 0.75,
+        "page": 3,
+        "quality_tier": "clean",
+        "route": "E2",
+        "signals": {
+          "area_pt2": 1002322.5944979489,
+          "embedded_font_count": 4,
+          "has_table_via_pdfplumber": false,
+          "height_pt": 841.9199829101562,
+          "image_count": 1,
+          "page_number": 2,
+          "text_chars": 2538,
+          "title_block_hits": 0,
+          "vector_path_count": 3090,
+          "width_pt": 1190.52001953125
+        }
+      },
+      {
+        "classifier_confidence": 0.75,
+        "page": 4,
+        "quality_tier": "clean",
+        "route": "E2",
+        "signals": {
+          "area_pt2": 1002322.5944979489,
+          "embedded_font_count": 4,
+          "has_table_via_pdfplumber": false,
+          "height_pt": 841.9199829101562,
+          "image_count": 1,
+          "page_number": 3,
+          "text_chars": 2448,
+          "title_block_hits": 0,
+          "vector_path_count": 3142,
+          "width_pt": 1190.52001953125
+        }
+      },
+      {
+        "classifier_confidence": 0.75,
+        "page": 5,
+        "quality_tier": "clean",
+        "route": "E2",
+        "signals": {
+          "area_pt2": 1002322.5944979489,
+          "embedded_font_count": 4,
+          "has_table_via_pdfplumber": false,
+          "height_pt": 841.9199829101562,
+          "image_count": 1,
+          "page_number": 4,
+          "text_chars": 3044,
+          "title_block_hits": 0,
+          "vector_path_count": 3273,
+          "width_pt": 1190.52001953125
+        }
+      },
+      {
+        "classifier_confidence": 0.75,
+        "page": 6,
+        "quality_tier": "clean",
+        "route": "E2",
+        "signals": {
+          "area_pt2": 1002322.5944979489,
+          "embedded_font_count": 4,
+          "has_table_via_pdfplumber": true,
+          "height_pt": 841.9199829101562,
+          "image_count": 1,
+          "page_number": 5,
+          "text_chars": 1362,
+          "title_block_hits": 0,
+          "vector_path_count": 1003,
+          "width_pt": 1190.52001953125
+        }
+      },
+      {
+        "classifier_confidence": 0.75,
+        "page": 7,
+        "quality_tier": "clean",
+        "route": "E2",
+        "signals": {
+          "area_pt2": 1002322.5944979489,
+          "embedded_font_count": 4,
+          "has_table_via_pdfplumber": false,
+          "height_pt": 841.9199829101562,
+          "image_count": 1,
+          "page_number": 6,
+          "text_chars": 9178,
+          "title_block_hits": 0,
+          "vector_path_count": 267,
+          "width_pt": 1190.52001953125
+        }
+      },
+      {
+        "classifier_confidence": 0.75,
+        "page": 8,
+        "quality_tier": "clean",
+        "route": "E2",
+        "signals": {
+          "area_pt2": 1002322.5944979489,
+          "embedded_font_count": 4,
+          "has_table_via_pdfplumber": false,
+          "height_pt": 841.9199829101562,
+          "image_count": 1,
+          "page_number": 7,
+          "text_chars": 5995,
+          "title_block_hits": 0,
+          "vector_path_count": 237,
+          "width_pt": 1190.52001953125
+        }
+      },
+      {
+        "classifier_confidence": 0.75,
+        "page": 9,
+        "quality_tier": "clean",
+        "route": "E2",
+        "signals": {
+          "area_pt2": 1002322.5944979489,
+          "embedded_font_count": 5,
+          "has_table_via_pdfplumber": false,
+          "height_pt": 841.9199829101562,
+          "image_count": 1,
+          "page_number": 8,
+          "text_chars": 5172,
+          "title_block_hits": 0,
+          "vector_path_count": 242,
+          "width_pt": 1190.52001953125
+        }
+      },
+      {
+        "classifier_confidence": 0.75,
+        "page": 10,
+        "quality_tier": "clean",
+        "route": "E2",
+        "signals": {
+          "area_pt2": 1002322.5944979489,
+          "embedded_font_count": 4,
+          "has_table_via_pdfplumber": false,
+          "height_pt": 841.9199829101562,
+          "image_count": 1,
+          "page_number": 9,
+          "text_chars": 7411,
+          "title_block_hits": 0,
+          "vector_path_count": 274,
+          "width_pt": 1190.52001953125
+        }
+      },
+      {
+        "classifier_confidence": 0.75,
+        "page": 11,
+        "quality_tier": "clean",
+        "route": "E2",
+        "signals": {
+          "area_pt2": 1002322.5944979489,
+          "embedded_font_count": 4,
+          "has_table_via_pdfplumber": false,
+          "height_pt": 841.9199829101562,
+          "image_count": 1,
+          "page_number": 10,
+          "text_chars": 4290,
+          "title_block_hits": 0,
+          "vector_path_count": 244,
+          "width_pt": 1190.52001953125
+        }
+      }
+    ]
+  },
+  "Singe line diagram.pdf": {
+    "basename": "Singe line diagram.pdf",
+    "pages": [
+      {
+        "classifier_confidence": 0.85,
+        "page": 1,
+        "quality_tier": "clean",
+        "route": "E6",
+        "signals": {
+          "area_pt2": 501156.9211820215,
+          "embedded_font_count": 2,
+          "has_table_via_pdfplumber": false,
+          "height_pt": 595.2760009765625,
+          "image_count": 2,
+          "page_number": 0,
+          "text_chars": 1345,
+          "title_block_hits": 5,
+          "vector_path_count": 399,
+          "width_pt": 841.8900146484375
+        }
+      },
+      {
+        "classifier_confidence": 0.85,
+        "page": 2,
+        "quality_tier": "clean",
+        "route": "E6",
+        "signals": {
+          "area_pt2": 501156.9211820215,
+          "embedded_font_count": 2,
+          "has_table_via_pdfplumber": false,
+          "height_pt": 595.2760009765625,
+          "image_count": 2,
+          "page_number": 1,
+          "text_chars": 3239,
+          "title_block_hits": 5,
+          "vector_path_count": 976,
+          "width_pt": 841.8900146484375
+        }
+      },
+      {
+        "classifier_confidence": 0.85,
+        "page": 3,
+        "quality_tier": "clean",
+        "route": "E6",
+        "signals": {
+          "area_pt2": 501156.9211820215,
+          "embedded_font_count": 2,
+          "has_table_via_pdfplumber": false,
+          "height_pt": 595.2760009765625,
+          "image_count": 2,
+          "page_number": 2,
+          "text_chars": 2962,
+          "title_block_hits": 5,
+          "vector_path_count": 974,
+          "width_pt": 841.8900146484375
+        }
+      },
+      {
+        "classifier_confidence": 0.85,
+        "page": 4,
+        "quality_tier": "clean",
+        "route": "E6",
+        "signals": {
+          "area_pt2": 501156.9211820215,
+          "embedded_font_count": 2,
+          "has_table_via_pdfplumber": false,
+          "height_pt": 595.2760009765625,
+          "image_count": 2,
+          "page_number": 3,
+          "text_chars": 3040,
+          "title_block_hits": 5,
+          "vector_path_count": 946,
+          "width_pt": 841.8900146484375
+        }
+      },
+      {
+        "classifier_confidence": 0.85,
+        "page": 5,
+        "quality_tier": "clean",
+        "route": "E6",
+        "signals": {
+          "area_pt2": 501156.9211820215,
+          "embedded_font_count": 2,
+          "has_table_via_pdfplumber": false,
+          "height_pt": 595.2760009765625,
+          "image_count": 2,
+          "page_number": 4,
+          "text_chars": 3287,
+          "title_block_hits": 5,
+          "vector_path_count": 954,
+          "width_pt": 841.8900146484375
+        }
+      },
+      {
+        "classifier_confidence": 0.85,
+        "page": 6,
+        "quality_tier": "clean",
+        "route": "E6",
+        "signals": {
+          "area_pt2": 501156.9211820215,
+          "embedded_font_count": 2,
+          "has_table_via_pdfplumber": false,
+          "height_pt": 595.2760009765625,
+          "image_count": 2,
+          "page_number": 5,
+          "text_chars": 3416,
+          "title_block_hits": 5,
+          "vector_path_count": 942,
+          "width_pt": 841.8900146484375
+        }
+      },
+      {
+        "classifier_confidence": 0.85,
+        "page": 7,
+        "quality_tier": "clean",
+        "route": "E6",
+        "signals": {
+          "area_pt2": 501156.9211820215,
+          "embedded_font_count": 2,
+          "has_table_via_pdfplumber": false,
+          "height_pt": 595.2760009765625,
+          "image_count": 2,
+          "page_number": 6,
+          "text_chars": 3284,
+          "title_block_hits": 5,
+          "vector_path_count": 946,
+          "width_pt": 841.8900146484375
+        }
+      },
+      {
+        "classifier_confidence": 0.85,
+        "page": 8,
+        "quality_tier": "clean",
+        "route": "E6",
+        "signals": {
+          "area_pt2": 501156.9211820215,
+          "embedded_font_count": 2,
+          "has_table_via_pdfplumber": false,
+          "height_pt": 595.2760009765625,
+          "image_count": 2,
+          "page_number": 7,
+          "text_chars": 1989,
+          "title_block_hits": 5,
+          "vector_path_count": 603,
+          "width_pt": 841.8900146484375
+        }
+      }
+    ]
+  },
+  "Vantage-Vendor Supplier List.pdf": {
+    "basename": "Vantage-Vendor Supplier List.pdf",
+    "pages": [
+      {
+        "classifier_confidence": 0.8,
+        "page": 1,
+        "quality_tier": "clean",
+        "route": "E1",
+        "signals": {
+          "area_pt2": 484704.0,
+          "embedded_font_count": 3,
+          "has_table_via_pdfplumber": false,
+          "height_pt": 792.0,
+          "image_count": 1,
+          "page_number": 0,
+          "text_chars": 3997,
+          "title_block_hits": 0,
+          "vector_path_count": 91,
+          "width_pt": 612.0
+        }
+      },
+      {
+        "classifier_confidence": 0.8,
+        "page": 2,
+        "quality_tier": "clean",
+        "route": "E1",
+        "signals": {
+          "area_pt2": 484704.0,
+          "embedded_font_count": 3,
+          "has_table_via_pdfplumber": false,
+          "height_pt": 792.0,
+          "image_count": 0,
+          "page_number": 1,
+          "text_chars": 492,
+          "title_block_hits": 0,
+          "vector_path_count": 16,
+          "width_pt": 612.0
+        }
+      },
+      {
+        "classifier_confidence": 0.75,
+        "page": 3,
+        "quality_tier": "clean",
+        "route": "E2",
+        "signals": {
+          "area_pt2": 484704.0,
+          "embedded_font_count": 3,
+          "has_table_via_pdfplumber": true,
+          "height_pt": 792.0,
+          "image_count": 1,
+          "page_number": 2,
+          "text_chars": 1693,
+          "title_block_hits": 0,
+          "vector_path_count": 54,
+          "width_pt": 612.0
+        }
+      },
+      {
+        "classifier_confidence": 0.75,
+        "page": 4,
+        "quality_tier": "clean",
+        "route": "E2",
+        "signals": {
+          "area_pt2": 484704.0,
+          "embedded_font_count": 3,
+          "has_table_via_pdfplumber": true,
+          "height_pt": 792.0,
+          "image_count": 1,
+          "page_number": 3,
+          "text_chars": 721,
+          "title_block_hits": 0,
+          "vector_path_count": 27,
+          "width_pt": 612.0
+        }
+      },
+      {
+        "classifier_confidence": 0.75,
+        "page": 5,
+        "quality_tier": "clean",
+        "route": "E2",
+        "signals": {
+          "area_pt2": 484704.0,
+          "embedded_font_count": 4,
+          "has_table_via_pdfplumber": true,
+          "height_pt": 792.0,
+          "image_count": 1,
+          "page_number": 4,
+          "text_chars": 744,
+          "title_block_hits": 0,
+          "vector_path_count": 27,
+          "width_pt": 612.0
+        }
+      },
+      {
+        "classifier_confidence": 0.8,
+        "page": 6,
+        "quality_tier": "clean",
+        "route": "E1",
+        "signals": {
+          "area_pt2": 484704.0,
+          "embedded_font_count": 4,
+          "has_table_via_pdfplumber": false,
+          "height_pt": 792.0,
+          "image_count": 1,
+          "page_number": 5,
+          "text_chars": 2657,
+          "title_block_hits": 0,
+          "vector_path_count": 34,
+          "width_pt": 612.0
+        }
+      },
+      {
+        "classifier_confidence": 0.6,
+        "page": 7,
+        "quality_tier": "clean",
+        "route": "E3",
+        "signals": {
+          "area_pt2": 484704.0,
+          "embedded_font_count": 4,
+          "has_table_via_pdfplumber": false,
+          "height_pt": 792.0,
+          "image_count": 1,
+          "page_number": 6,
+          "text_chars": 340,
+          "title_block_hits": 0,
+          "vector_path_count": 14,
+          "width_pt": 612.0
+        }
+      },
+      {
+        "classifier_confidence": 0.75,
+        "page": 8,
+        "quality_tier": "clean",
+        "route": "E2",
+        "signals": {
+          "area_pt2": 484704.0,
+          "embedded_font_count": 5,
+          "has_table_via_pdfplumber": true,
+          "height_pt": 792.0,
+          "image_count": 1,
+          "page_number": 7,
+          "text_chars": 1624,
+          "title_block_hits": 0,
+          "vector_path_count": 20,
+          "width_pt": 612.0
+        }
+      },
+      {
+        "classifier_confidence": 0.8,
+        "page": 9,
+        "quality_tier": "clean",
+        "route": "E1",
+        "signals": {
+          "area_pt2": 484704.0,
+          "embedded_font_count": 3,
+          "has_table_via_pdfplumber": false,
+          "height_pt": 792.0,
+          "image_count": 1,
+          "page_number": 8,
+          "text_chars": 3076,
+          "title_block_hits": 0,
+          "vector_path_count": 50,
+          "width_pt": 612.0
+        }
+      },
+      {
+        "classifier_confidence": 0.75,
+        "page": 10,
+        "quality_tier": "clean",
+        "route": "E2",
+        "signals": {
+          "area_pt2": 484704.0,
+          "embedded_font_count": 3,
+          "has_table_via_pdfplumber": true,
+          "height_pt": 792.0,
+          "image_count": 1,
+          "page_number": 9,
+          "text_chars": 693,
+          "title_block_hits": 0,
+          "vector_path_count": 31,
+          "width_pt": 612.0
+        }
+      },
+      {
+        "classifier_confidence": 0.75,
+        "page": 11,
+        "quality_tier": "clean",
+        "route": "E2",
+        "signals": {
+          "area_pt2": 484704.0,
+          "embedded_font_count": 3,
+          "has_table_via_pdfplumber": true,
+          "height_pt": 792.0,
+          "image_count": 1,
+          "page_number": 10,
+          "text_chars": 818,
+          "title_block_hits": 0,
+          "vector_path_count": 27,
+          "width_pt": 612.0
+        }
+      }
+    ]
+  }
+}
