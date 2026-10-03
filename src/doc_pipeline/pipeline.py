@@ -16,7 +16,12 @@ import json
 import pymupdf as fitz
 import pdfplumber
 
-from .classifier import collect_signals, classify_page, ocr_quality_check
+from .classifier import (
+    ClassificationResult,
+    PageClassifier,
+    collect_signals,
+    resolve_classifier,
+)
 from .schema import ProcessingRoute, make_record
 from .guessers import DocumentTypeGuesser, DEFAULT_GUESSER
 
@@ -26,7 +31,70 @@ from .guessers import DocumentTypeGuesser, DEFAULT_GUESSER
 from .extractors import e1, e2, e3, e6
 
 
-def process_pdf(pdf_path: str, guesser: DocumentTypeGuesser = DEFAULT_GUESSER) -> list[dict]:
+def _failed_result(classifier: PageClassifier, exc: Exception) -> ClassificationResult:
+    """The result recorded for a page whose classifier raised.
+
+    The page is kept rather than dropped: the record still points at the
+    source page, and `classifier_error` is what distinguishes this from a
+    page that was genuinely blank.
+    """
+    return ClassificationResult(
+        route=ProcessingRoute.UNKNOWN,
+        quality_tier="clean",
+        confidence=0.0,
+        reason=f"classifier {classifier.name} raised: {exc}",
+        signals={"classifier": classifier.name, "classifier_error": repr(exc)},
+    )
+
+
+def _classify_safely(classifier: PageClassifier, sig, page_index: int) -> ClassificationResult:
+    """Call `classifier.classify`, degrading one page on an unexpected error.
+
+    The interface says implementations must not raise and should answer
+    `UNKNOWN` at low confidence instead; this is the belt to that braces. A
+    classifier that raises is a bug in that classifier, not a reason to throw
+    away the rest of the document.
+    """
+    try:
+        # No `context` argument: no implementation reads it yet, and passing
+        # an empty context would imply one that does.
+        return classifier.classify(sig)
+    except Exception as exc:
+        print(
+            f"  page {page_index + 1:>3}: classifier {classifier.name} failed "
+            f"({exc!r}); recording an unknown record",
+            file=sys.stderr,
+        )
+        return _failed_result(classifier, exc)
+
+
+def _refine_safely(
+    classifier: PageClassifier, sig, result, ocr_result, page_index: int
+) -> ClassificationResult:
+    """The same guard around the post-OCR stage."""
+    try:
+        return classifier.refine_after_ocr(sig, result, ocr_result)
+    except Exception as exc:
+        print(
+            f"  page {page_index + 1:>3}: classifier {classifier.name} failed "
+            f"during refinement ({exc!r}); recording an unknown record",
+            file=sys.stderr,
+        )
+        return _failed_result(classifier, exc)
+
+
+def process_pdf(
+    pdf_path: str,
+    guesser: DocumentTypeGuesser = DEFAULT_GUESSER,
+    classifier: PageClassifier | None = None,
+) -> list[dict]:
+    """Classify and extract every page of one PDF.
+
+    `classifier` defaults to None and is resolved at call time rather than
+    bound at import time, so it need not be constructible when the module
+    loads. It is resolved once per document, not once per page: a classifier
+    holding a client or a session is built once.
+    """
     document_id = os.path.splitext(os.path.basename(pdf_path))[0]
     records = []
 
@@ -34,11 +102,13 @@ def process_pdf(pdf_path: str, guesser: DocumentTypeGuesser = DEFAULT_GUESSER) -
     with pdfplumber.open(pdf_path) as plumber_doc:
         first_page_text = doc[0].get_text() if len(doc) else ""
         document_type = guesser.guess(pdf_path, first_page_text)
+        # DocumentContext is deliberately not built: nothing reads it yet.
+        classifier = classifier or resolve_classifier()
 
         for i, page in enumerate(doc):
             plumber_page = plumber_doc.pages[i] if i < len(plumber_doc.pages) else None
             sig = collect_signals(page, plumber_page)
-            result = classify_page(sig)
+            result = _classify_safely(classifier, sig, i)
 
             route = result.route
             quality_tier = result.quality_tier
@@ -62,8 +132,11 @@ def process_pdf(pdf_path: str, guesser: DocumentTypeGuesser = DEFAULT_GUESSER) -
 
             elif route == ProcessingRoute.E3:
                 ocr = e3.extract(page)
-                final_route, final_tier = ocr_quality_check(ocr["mean_confidence"])
-                route, quality_tier = final_route, final_tier
+                # The classifier settles E3 against E5 using real OCR output
+                # and returns a whole result, so the pipeline takes its route,
+                # tier and revised confidence together.
+                result = _refine_safely(classifier, sig, result, ocr, i)
+                route, quality_tier = result.route, result.quality_tier
                 extracted = ocr
                 extraction_confidence = ocr["mean_confidence"] / 100.0
 
@@ -82,7 +155,10 @@ def process_pdf(pdf_path: str, guesser: DocumentTypeGuesser = DEFAULT_GUESSER) -
                 page=i + 1,
                 processing_route=route,
                 quality_tier=quality_tier,
-                signals=result.signals,
+                # The classifier name is what makes two experiment runs
+                # distinguishable after the fact, so it is recorded even when
+                # the classification failed.
+                signals={**result.signals, "classifier": classifier.name},
                 confidence=result.confidence,
                 raw_ref=f"{pdf_path}#page={i + 1}",
                 extracted=extracted,
