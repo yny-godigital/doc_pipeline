@@ -326,6 +326,121 @@ class JevClassifier(PageClassifier):
             int(usage.get("input_tokens", 0)),
         )
 
+    def _parse_legibility(
+        self, body: dict
+    ) -> tuple[ProcessingRoute, str, float, str, int]:
+        """Read the E3-or-E5 decision, the tier and the confidence out of a response."""
+        answers = (body or {}).get("answers") or {}
+        legibility = answers.get("legibility")
+        if not isinstance(legibility, dict) or "choice" not in legibility:
+            raise RuntimeError("Jev response has no legibility answer")
+
+        option = legibility["choice"]
+        if option not in LEGIBILITY_CRITERIA:
+            raise RuntimeError(
+                f"Jev chose {option!r}, which is not a known legibility option"
+            )
+
+        handwritten = (answers.get("handwritten") or {}).get("noul")
+        if option == "E3":
+            tier = "clean"
+        elif isinstance(handwritten, (int, float)) and handwritten >= 0.5:
+            tier = "handwritten"
+        else:
+            tier = "degraded"
+
+        usage = body.get("usage") or {}
+        return (
+            ProcessingRoute(option),
+            tier,
+            float(legibility.get("confidence", 0.0)),
+            str(body.get("model", "")),
+            int(usage.get("input_tokens", 0)),
+        )
+
+    def _build_ocr_state(self, page_number: int, ocr_result: dict) -> str:
+        text = (ocr_result.get("text") or "").strip()
+        body = (
+            text[: self.config.ocr_text_char_cap]
+            if text
+            else "tesseract recognized no words on this page."
+        )
+        return (
+            f"OCR of page {page_number + 1} | "
+            f"mean confidence {ocr_result.get('mean_confidence', 0.0)} | "
+            f"word count {ocr_result.get('word_count', 0)}\n\n"
+            f"Recognized text:\n{body}"
+        )
+
+    def refine_after_ocr(
+        self, signals: PageSignals, result: ClassificationResult, ocr_result: dict
+    ) -> ClassificationResult:
+        """Settle E3 against E5 using tesseract's actual output.
+
+        A page can only reach E5 from here. The pipeline's extraction chain has
+        no E5 branch, so a classifier that returned E5 from `classify` would
+        produce a record whose `extracted` dict is empty and which carries no
+        OCR output at all.
+
+        On failure the first-stage route is kept. The OCR result is already
+        attached to the page by then, and losing the legibility call is a much
+        smaller loss than discarding it.
+        """
+        try:
+            body = self._call(
+                {
+                    "state": self._build_ocr_state(signals.page_number, ocr_result),
+                    "model": self.config.model,
+                    "questions": {
+                        "legibility": {
+                            "type": "choice",
+                            "instructions": (
+                                "Could tesseract read this page reliably enough "
+                                "to use its text without a human re-reading it?"
+                            ),
+                            "criteria": LEGIBILITY_CRITERIA,
+                        },
+                        "handwritten": {
+                            "type": "noul",
+                            "instructions": (
+                                "Is this page handwritten rather than machine "
+                                "printed?"
+                            ),
+                        },
+                    },
+                }
+            )
+            route, tier, confidence, model, tokens = self._parse_legibility(body)
+        except Exception as exc:
+            return ClassificationResult(
+                route=result.route,
+                quality_tier=result.quality_tier,
+                confidence=result.confidence,
+                reason=f"Jev unavailable for the OCR legibility check ({exc})",
+                signals={
+                    **result.signals,
+                    "classifier": self.name,
+                    "jev_route_source": "threshold_fallback",
+                    "jev_error": repr(exc),
+                },
+            )
+
+        return ClassificationResult(
+            route=route,
+            quality_tier=tier,
+            confidence=confidence,
+            reason=(
+                f"OCR mean confidence {ocr_result.get('mean_confidence', 0.0)} -> {tier}"
+            ),
+            signals={
+                **result.signals,
+                "classifier": self.name,
+                "jev_route_source": "jev",
+                "jev_model": model,
+                "jev_input_tokens": tokens,
+            },
+        )
+
     def classify(self, signals: PageSignals, context=None) -> ClassificationResult:
         """Ask Jev to route one page.
 
