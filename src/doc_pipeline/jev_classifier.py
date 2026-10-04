@@ -17,6 +17,14 @@ import urllib.error
 import urllib.request
 from dataclasses import asdict, dataclass
 
+from .classifier import (
+    ClassificationResult,
+    PageClassifier,
+    PageSignals,
+    ThresholdClassifier,
+)
+from .schema import ProcessingRoute
+
 #: Environment variable holding the bearer token for api.typesafe.ai.
 API_KEY_ENV_VAR = "TYPESAFE_API_KEY"
 
@@ -139,3 +147,214 @@ def _post(
         raise RuntimeError(f"could not reach the Jev API: {exc.reason}") from exc
     except json.JSONDecodeError as exc:
         raise RuntimeError(f"Jev API returned a body that is not JSON: {exc}") from exc
+
+def _is_retryable(error: Exception) -> bool:
+    """Whether a failed request is worth sending again.
+
+    The status code is embedded in the message `_post` raises, because
+    `RuntimeError` is the single failure type callers handle.
+    """
+    message = str(error)
+    return any(f"returned {code}" in message for code in RETRYABLE_STATUS_CODES)
+
+
+class JevClassifier(PageClassifier):
+    """Routes a page by asking Jev, degrading to thresholds on any failure.
+
+    One request per page carries two questions -- the route and the quality
+    tier -- which Jev answers in parallel, so the second costs no extra round
+    trip.
+
+    Nothing here raises. A missing key, an unreachable API, an exhausted retry
+    budget or a malformed response all degrade that single page to the decision
+    `ThresholdClassifier` would have made, because a blank `unknown` record
+    loses the page entirely while a threshold decision at least preserves it.
+    """
+
+    def __init__(
+        self,
+        config: JevConfig | None = None,
+        *,
+        transport=None,
+        fallback: ThresholdClassifier | None = None,
+    ) -> None:
+        """
+        `config` defaults to `JevConfig.from_env()`, which raises when
+        `TYPESAFE_API_KEY` is unset. A blank key is rejected here too, so a
+        misconfigured credential surfaces at construction, where the caller can
+        degrade to a local classifier, rather than on the first page of a
+        corpus.
+
+        `transport` is the injection point for tests. It takes
+        `(endpoint, payload, headers, timeout)` and returns the decoded
+        response body.
+        """
+        self.config = config if config is not None else JevConfig.from_env()
+        if not self.config.api_key.strip():
+            raise RuntimeError(
+                f"{API_KEY_ENV_VAR} is empty; it holds the bearer token for "
+                f"{self.config.endpoint}"
+            )
+        self._transport = transport if transport is not None else _post
+        self._fallback = fallback if fallback is not None else ThresholdClassifier()
+
+    @property
+    def name(self) -> str:
+        return "jev"
+
+    # --- request ------------------------------------------------------------
+
+    def _build_state(self, signals: PageSignals) -> str:
+        """Describe one page as text: its measurements, then its own words.
+
+        The measurements come first because a page can be almost entirely
+        diagram, in which case the text sample is a handful of stray labels
+        and the measurements are the evidence.
+        """
+        cap = self.config.text_char_cap
+        table_note = (
+            "ruled table detected" if signals.has_table_via_pdfplumber else "no ruled table"
+        )
+        if signals.text_sample:
+            text_block = f"Text of page:\n{signals.text_sample[:cap]}"
+        else:
+            text_block = "No native text layer on this page."
+
+        return (
+            f"Page {signals.page_number + 1} | "
+            f"{signals.width_pt:.0f}x{signals.height_pt:.0f}pt | "
+            f"{signals.text_chars} chars native text | "
+            f"{signals.image_count} images | "
+            f"{signals.vector_path_count} vector paths | "
+            f"{table_note} | "
+            f"title-block markers: {signals.title_block_hits} | "
+            f"embedded fonts: {signals.embedded_font_count}\n\n"
+            f"{text_block}"
+        )
+
+    def _build_payload(self, signals: PageSignals) -> dict:
+        return {
+            "state": self._build_state(signals),
+            "model": self.config.model,
+            "questions": {
+                "route": {
+                    "type": "choice",
+                    "instructions": (
+                        "Which processing route fits this page of a PDF "
+                        "document?"
+                    ),
+                    "criteria": ROUTE_CRITERIA,
+                },
+                "quality": {
+                    "type": "choice",
+                    "instructions": "How readable is this page?",
+                    "criteria": {
+                        "clean": "Fully legible, machine-printed, nothing degraded.",
+                        "degraded": (
+                            "Legible but poor: faint, skewed, low contrast, or "
+                            "partly obscured."
+                        ),
+                        "handwritten": "Contains handwriting rather than machine-printed text.",
+                    },
+                },
+            },
+        }
+
+    def _call(self, payload: dict) -> dict:
+        """POST a payload, retrying only the failures worth retrying."""
+        headers = {
+            "Authorization": f"Bearer {self.config.api_key}",
+            "Content-Type": "application/json",
+        }
+        last_error: Exception | None = None
+
+        for attempt in range(self.config.max_attempts):
+            try:
+                return self._transport(
+                    self.config.endpoint, payload, headers, self.config.timeout_seconds
+                )
+            except RuntimeError as exc:
+                if not _is_retryable(exc):
+                    raise
+                last_error = exc
+                if attempt < self.config.max_attempts - 1:
+                    time.sleep(self.config.base_backoff_seconds * (2**attempt))
+
+        raise last_error if last_error else RuntimeError("Jev call failed")
+
+    # --- answer -------------------------------------------------------------
+
+    def _fallback_result(
+        self, signals: PageSignals, error: Exception
+    ) -> ClassificationResult:
+        """The decision the threshold tree would have made, marked as a fallback."""
+        result = self._fallback.classify(signals)
+        signals_dict = dict(result.signals)
+        signals_dict["classifier"] = self.name
+        signals_dict["jev_route_source"] = "threshold_fallback"
+        signals_dict["jev_error"] = repr(error)
+        return ClassificationResult(
+            route=result.route,
+            quality_tier=result.quality_tier,
+            confidence=result.confidence,
+            reason=f"Jev unavailable ({error}); fell back to the threshold classifier",
+            signals=signals_dict,
+        )
+
+    def _parse(self, body: dict) -> tuple[ProcessingRoute, str, float, str, int]:
+        """Pull the route, tier, confidence, model and token count out of a response."""
+        answers = (body or {}).get("answers") or {}
+        route_answer = answers.get("route")
+        if not isinstance(route_answer, dict) or "choice" not in route_answer:
+            raise RuntimeError("Jev response has no route answer")
+
+        option = route_answer["choice"]
+        if option not in ROUTE_CRITERIA:
+            raise RuntimeError(f"Jev chose {option!r}, which is not a known route")
+
+        quality_answer = answers.get("quality") or {}
+        quality = quality_answer.get("choice")
+        if quality not in ("clean", "degraded", "handwritten"):
+            quality = "clean"
+
+        usage = body.get("usage") or {}
+        return (
+            ProcessingRoute(option),
+            quality,
+            float(route_answer.get("confidence", 0.0)),
+            str(body.get("model", "")),
+            int(usage.get("input_tokens", 0)),
+        )
+
+    def classify(self, signals: PageSignals, context=None) -> ClassificationResult:
+        """Ask Jev to route one page.
+
+        Sequential by necessity: this method sees one page at a time and cannot
+        see what is coming, so there is nothing to batch. That costs roughly a
+        second per page -- a forty-page drawing takes about forty seconds that
+        the threshold classifier spent in microseconds. Acceptable while
+        measuring whether Jev is worth its latency; if it is, batching becomes
+        a pipeline change rather than a classifier one.
+        """
+        try:
+            body = self._call(self._build_payload(signals))
+            route, quality, confidence, model, tokens = self._parse(body)
+        except Exception as exc:
+            return self._fallback_result(signals, exc)
+
+        return ClassificationResult(
+            route=route,
+            quality_tier=quality,
+            confidence=confidence,
+            reason=f"Jev chose {route.value} at {confidence:.2f} confidence",
+            signals={
+                **{
+                    k: v
+                    for k, v in asdict(signals).items()
+                    if k != "text_sample"
+                },
+                "jev_route_source": "jev",
+                "jev_model": model,
+                "jev_input_tokens": tokens,
+            },
+        )
