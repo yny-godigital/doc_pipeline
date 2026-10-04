@@ -27,6 +27,7 @@ import sys
 from dataclasses import asdict, dataclass
 
 import pymupdf as fitz
+from dotenv import load_dotenv
 
 from .schema import DocumentType, ProcessingRoute
 
@@ -351,13 +352,20 @@ class ThresholdClassifier(PageClassifier):
 CLASSIFIER_ENV_VAR = "DOC_PIPELINE_CLASSIFIER"
 
 #: Every name `resolve_classifier` accepts.
-KNOWN_CLASSIFIERS = ("threshold",)
+KNOWN_CLASSIFIERS = ("threshold", "jev")
 
 
 def _build_known_classifier(name: str) -> PageClassifier:
     """Build the classifier registered under `name`."""
     if name == "threshold":
         return ThresholdClassifier()
+    if name == "jev":
+        # Imported here rather than at module scope because jev_classifier
+        # imports PageClassifier and PageSignals from this module, and a
+        # top-level import in both directions is a circular import.
+        from .jev_classifier import JevClassifier
+
+        return JevClassifier()
     raise ValueError(f"no builder registered for classifier {name!r}")
 
 
@@ -373,7 +381,15 @@ def resolve_classifier() -> PageClassifier:
     credential, an unreachable service -- and falls back to the threshold
     classifier with a warning, so one broken dependency does not cost a batch
     run.
+
+    A `.env` file is loaded first, so a credential does not have to be
+    exported by hand. `load_dotenv` finds it by walking up from this module's
+    own directory rather than from the current working directory, so the
+    project's `.env` is picked up wherever the tool is invoked from. Variables
+    already present in the real environment win, because `load_dotenv` does
+    not overwrite them.
     """
+    load_dotenv()
     requested = os.environ.get(CLASSIFIER_ENV_VAR)
     if requested is None:
         return ThresholdClassifier()

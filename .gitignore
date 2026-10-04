@@ -12,3 +12,6 @@ wheels/
 output/
 
 docs/
+
+# Local credentials
+.env

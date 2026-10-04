@@ -41,3 +41,38 @@ def test_recognised_name_that_cannot_be_built_falls_back(monkeypatch, capsys):
 
     assert isinstance(resolve_classifier(), ThresholdClassifier)
     assert "no api key configured" in capsys.readouterr().err
+
+def test_jev_is_a_known_classifier_name(monkeypatch):
+    monkeypatch.setenv("DOC_PIPELINE_CLASSIFIER", "jev")
+    monkeypatch.setenv("TYPESAFE_API_KEY", "test-key")
+    monkeypatch.delenv("JEV_MODEL", raising=False)
+
+    from doc_pipeline.jev_classifier import JevClassifier
+
+    assert isinstance(resolve_classifier(), JevClassifier)
+
+
+def test_jev_without_a_key_falls_back_to_the_thresholds(monkeypatch):
+    # A missing credential must not cost a whole batch run, so a valid name
+    # that cannot be built degrades instead of raising.
+    #
+    # `load_dotenv` is stubbed out because this repository has a `.env` holding
+    # a real credential. `load_dotenv()` resolves a `.env` by walking up from
+    # the calling module's file rather than from the working directory, so
+    # changing directory does not stop it being found -- stubbing it does.
+    monkeypatch.setattr("doc_pipeline.classifier.load_dotenv", lambda: False)
+    monkeypatch.setenv("DOC_PIPELINE_CLASSIFIER", "jev")
+    monkeypatch.delenv("TYPESAFE_API_KEY", raising=False)
+
+    assert isinstance(resolve_classifier(), ThresholdClassifier)
+
+
+def test_the_valid_names_error_lists_both_classifiers(monkeypatch):
+    monkeypatch.setenv("DOC_PIPELINE_CLASSIFIER", "jevv")
+
+    with pytest.raises(ValueError) as excinfo:
+        resolve_classifier()
+
+    message = str(excinfo.value)
+    assert "threshold" in message
+    assert "jev" in message
