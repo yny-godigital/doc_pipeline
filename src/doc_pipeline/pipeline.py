@@ -15,6 +15,7 @@ import os
 import json
 import pymupdf as fitz
 import pdfplumber
+from dotenv import load_dotenv
 
 from .classifier import (
     ClassificationResult,
@@ -179,6 +180,11 @@ def main():
     """
     Expects the pdf file path as the first or next arguments to the method
     """
+
+    # Loaded here rather than inside the library so that importing this module
+    # has no side effect on the environment, and a `.env` in the project can
+    # only ever influence a real command-line run.
+    load_dotenv()
 
     if len(sys.argv) < 2:
         print(__doc__)

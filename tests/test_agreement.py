@@ -151,3 +151,127 @@ def test_compare_collects_signals_once_per_page(tmp_path, monkeypatch):
     )
 
     assert len(calls) == 1
+
+class TieredClassifier(FixedClassifier):
+    """A fixed-route classifier that also fixes the quality tier."""
+
+    def __init__(self, label, route, tier):
+        super().__init__(label, route)
+        self._tier = tier
+
+    def classify(self, signals, context=None):
+        result = super().classify(signals, context)
+        result.quality_tier = self._tier
+        return result
+
+
+class SourcedClassifier(FixedClassifier):
+    """A classifier that claims a given decision source, as Jev does."""
+
+    def __init__(self, label, route, source):
+        super().__init__(label, route)
+        self._source = source
+
+    def classify(self, signals, context=None):
+        result = super().classify(signals, context)
+        result.signals["jev_route_source"] = self._source
+        return result
+
+
+def test_a_tier_only_disagreement_is_still_a_disagreement(tmp_path):
+    # Agreement is computed on route *and* quality tier, so two classifiers
+    # returning the same route with different tiers disagree.
+    path = one_page_pdf(tmp_path)
+    report = compare_classifiers(
+        [path],
+        TieredClassifier("a", ProcessingRoute.E6, "clean"),
+        TieredClassifier("b", ProcessingRoute.E6, "degraded"),
+    )
+
+    assert report["totals"]["agreements"] == 0
+    assert report["totals"]["tier_only_disagreements"] == 1
+
+
+def test_a_tier_only_disagreement_prints_both_tiers(tmp_path):
+    # Printing only the route makes a tier-only disagreement look like
+    # agreement, because both sides read as the same value.
+    path = one_page_pdf(tmp_path)
+    report = compare_classifiers(
+        [path],
+        TieredClassifier("a", ProcessingRoute.E6, "clean"),
+        TieredClassifier("b", ProcessingRoute.E6, "degraded"),
+    )
+
+    text = format_report(report)
+    assert "clean" in text
+    assert "degraded" in text
+
+
+def test_each_disagreement_line_names_which_classifier_is_which(tmp_path):
+    path = one_page_pdf(tmp_path)
+    report = compare_classifiers(
+        [path], FixedClassifier("threshold-x", ProcessingRoute.E6), FixedClassifier("jev-x", ProcessingRoute.E2)
+    )
+
+    line = [
+        row
+        for row in format_report(report).splitlines()
+        if "->" in row and "threshold-x" in row
+    ][0]
+
+    assert "threshold-x" in line
+    assert "jev-x" in line
+
+
+def test_the_histogram_heading_names_the_direction(tmp_path):
+    path = one_page_pdf(tmp_path)
+    report = compare_classifiers(
+        [path], FixedClassifier("threshold-x", ProcessingRoute.E6), FixedClassifier("jev-x", ProcessingRoute.E2)
+    )
+
+    heading = [
+        row
+        for row in format_report(report).splitlines()
+        if "route pair" in row
+    ][0]
+
+    assert "threshold-x" in heading
+    assert "jev-x" in heading
+
+
+def test_the_report_counts_pages_the_second_classifier_decided(tmp_path):
+    path = one_page_pdf(tmp_path)
+    report = compare_classifiers(
+        [path],
+        FixedClassifier("a", ProcessingRoute.E1),
+        SourcedClassifier("jev-x", ProcessingRoute.E1, "jev"),
+    )
+
+    assert report["totals"]["decided_by_source"] == {"jev": 1}
+
+
+def test_the_report_counts_pages_that_fell_back_even_when_agreeing(tmp_path):
+    # A run where every call fell back is indistinguishable from a perfect
+    # score unless the fallbacks are counted across all pages, not just the
+    # disagreeing ones.
+    path = one_page_pdf(tmp_path)
+    report = compare_classifiers(
+        [path],
+        FixedClassifier("a", ProcessingRoute.E1),
+        SourcedClassifier("jev-x", ProcessingRoute.E1, "threshold_fallback"),
+    )
+
+    assert report["totals"]["agreements"] == 1
+    assert report["totals"]["decided_by_source"] == {"threshold_fallback": 1}
+
+
+def test_the_source_line_says_how_many_pages_jev_actually_decided(tmp_path):
+    path = one_page_pdf(tmp_path)
+    report = compare_classifiers(
+        [path],
+        FixedClassifier("a", ProcessingRoute.E1),
+        SourcedClassifier("jev-x", ProcessingRoute.E1, "threshold_fallback"),
+    )
+
+    text = format_report(report)
+    assert "fell back" in text.lower()

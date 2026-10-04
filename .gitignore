@@ -15,3 +15,4 @@ docs/
 
 # Local credentials
 .env
+agreement-report.json

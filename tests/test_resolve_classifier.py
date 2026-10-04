@@ -55,13 +55,22 @@ def test_jev_is_a_known_classifier_name(monkeypatch):
 def test_jev_without_a_key_falls_back_to_the_thresholds(monkeypatch):
     # A missing credential must not cost a whole batch run, so a valid name
     # that cannot be built degrades instead of raising.
-    #
-    # `load_dotenv` is stubbed out because this repository has a `.env` holding
-    # a real credential. `load_dotenv()` resolves a `.env` by walking up from
-    # the calling module's file rather than from the working directory, so
-    # changing directory does not stop it being found -- stubbing it does.
-    monkeypatch.setattr("doc_pipeline.classifier.load_dotenv", lambda: False)
     monkeypatch.setenv("DOC_PIPELINE_CLASSIFIER", "jev")
+    monkeypatch.delenv("TYPESAFE_API_KEY", raising=False)
+
+    assert isinstance(resolve_classifier(), ThresholdClassifier)
+
+
+def test_resolve_classifier_ignores_a_dotenv_file(monkeypatch, tmp_path):
+    # `.env` loading belongs to the command-line entry points, not to library
+    # code. If `resolve_classifier` read it, a project `.env` selecting `jev`
+    # would silently switch every test run onto a classifier that makes
+    # billable API calls.
+    (tmp_path / ".env").write_text(
+        "DOC_PIPELINE_CLASSIFIER=jev\nTYPESAFE_API_KEY=should-not-be-read\n"
+    )
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.delenv("DOC_PIPELINE_CLASSIFIER", raising=False)
     monkeypatch.delenv("TYPESAFE_API_KEY", raising=False)
 
     assert isinstance(resolve_classifier(), ThresholdClassifier)

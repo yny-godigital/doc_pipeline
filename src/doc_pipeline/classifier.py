@@ -27,7 +27,6 @@ import sys
 from dataclasses import asdict, dataclass
 
 import pymupdf as fitz
-from dotenv import load_dotenv
 
 from .schema import DocumentType, ProcessingRoute
 
@@ -382,14 +381,10 @@ def resolve_classifier() -> PageClassifier:
     classifier with a warning, so one broken dependency does not cost a batch
     run.
 
-    A `.env` file is loaded first, so a credential does not have to be
-    exported by hand. `load_dotenv` finds it by walking up from this module's
-    own directory rather than from the current working directory, so the
-    project's `.env` is picked up wherever the tool is invoked from. Variables
-    already present in the real environment win, because `load_dotenv` does
-    not overwrite them.
+    This reads the environment and nothing else. Loading a `.env` file belongs
+    to the command-line entry points rather than here, so that library code
+    and tests see only what the caller explicitly exported.
     """
-    load_dotenv()
     requested = os.environ.get(CLASSIFIER_ENV_VAR)
     if requested is None:
         return ThresholdClassifier()
