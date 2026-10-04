@@ -134,6 +134,13 @@ class PageSignals:
     has_table_via_pdfplumber: bool
     embedded_font_count: int
     title_block_hits: int = 0
+    # Real page text, truncated. A classifier deciding between a drawing and a
+    # table needs the page's words, not just its measurements -- a thin-text
+    # floor plan and a thin-text index look identical by measurement alone.
+    # This is a feature for the classifier only; it is popped before any
+    # result's `signals` dict is built, so client document text never reaches
+    # an output record or the committed routing snapshot.
+    text_sample: str = ""
 
 
 @dataclass
@@ -197,6 +204,7 @@ def collect_signals(
         has_table_via_pdfplumber=has_table,
         embedded_font_count=len(fonts),
         title_block_hits=title_block_hits,
+        text_sample=text.strip()[:2000],
     )
 
 
@@ -220,6 +228,11 @@ class ThresholdClassifier(PageClassifier):
         # asdict rather than sig.__dict__: the pipeline writes a classifier
         # name into this dictionary and must not reach back into the record.
         signals_dict = asdict(sig)
+        # `asdict` copies every field, including the page text sample that
+        # classifiers read. Records are audit data and must not carry client
+        # document content, so drop it here. Every other field is unchanged,
+        # which keeps the committed routing snapshot byte-identical.
+        signals_dict.pop("text_sample", None)
 
         # --- Tier 0: native / oversized engineering drawing --------------------
         # Large sheet size plus very dense vector line-work is the signature
