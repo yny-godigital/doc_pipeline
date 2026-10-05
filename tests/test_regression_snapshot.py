@@ -16,7 +16,7 @@ import pytest
 from snapshot_helper import CORPUS_PDFS, SNAPSHOT_PATH, build_digest
 
 pytestmark = [
-    # Pages routed to E3 are OCR'd with tesseract, which is a system binary
+    # Pages routed to DC3 are OCR'd with tesseract, which is a system binary
     # rather than a Python package and is not present on every machine.
     pytest.mark.skipif(
         shutil.which("tesseract") is None, reason="tesseract binary not installed"

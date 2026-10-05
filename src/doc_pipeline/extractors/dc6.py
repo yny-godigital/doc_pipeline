@@ -1,5 +1,5 @@
 """
-E6: Engineering diagram route (P&ID, floor plan, sensor layout).
+DC6: Engineering diagram route (P&ID, floor plan, sensor layout).
 
 A CAD-exported PDF already contains real geometry and real text.
 This extractor pulls that geometry and text out directly:

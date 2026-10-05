@@ -18,16 +18,16 @@ class ProcessingRoute(str, Enum):
     The processing routes a page can be assigned to.
 
     Declared as a str-mixin enum so records still serialize to plain
-    strings in JSON ("E1", not "ProcessingRoute.E1") and so consumers
+    strings in JSON ("DC1", not "ProcessingRoute.DC1") and so consumers
     reading previously-written records keep working.
     """
-    E1 = "E1"               # text-heavy / semi-structured prose
-    E2 = "E2"               # tabular
-    E3 = "E3"               # scanned / flattened image, layout-aware OCR
-    E4 = "E4"               # native CAD/DXF (not reachable from PDF pages)
-    E5 = "E5"               # low quality / handwritten (E3 OCR pass came back weak)
-    E6 = "E6"               # engineering diagram (P&ID, floor plan, sensor layout)
-    UNKNOWN = "unknown"     # page carries no extractable content of its own
+    DC1 = "DC1"              # text-heavy / semi-structured prose
+    DC2 = "DC2"              # tabular
+    DC3 = "DC3"              # scanned / flattened image, layout-aware OCR
+    DC4 = "DC4"              # native CAD/DXF (not reachable from PDF pages)
+    DC5 = "DC5"              # low quality / handwritten (DC3 OCR pass came back weak)
+    DC6 = "DC6"              # engineering diagram (P&ID, floor plan, sensor layout)
+    UNKNOWN = "unknown"      # page carries no extractable content of its own
 
 
 class DocumentType(str, Enum):

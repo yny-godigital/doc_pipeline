@@ -8,9 +8,9 @@ from doc_pipeline.pipeline import process_pdf
 from doc_pipeline.schema import ProcessingRoute
 
 
-def e3_result(sig):
+def dc3_result(sig):
     return ClassificationResult(
-        route=ProcessingRoute.E3,
+        route=ProcessingRoute.DC3,
         quality_tier="unknown",
         confidence=0.6,
         reason="test double",
@@ -18,9 +18,9 @@ def e3_result(sig):
     )
 
 
-def e1_result(sig):
+def dc1_result(sig):
     return ClassificationResult(
-        route=ProcessingRoute.E1,
+        route=ProcessingRoute.DC1,
         quality_tier="clean",
         confidence=0.8,
         reason="test double",
@@ -54,7 +54,7 @@ class ExplodingRefiner(PageClassifier):
         return "exploding-refiner"
 
     def classify(self, sig, context=None):
-        return e3_result(sig)
+        return dc3_result(sig)
 
     def refine_after_ocr(self, sig, result, ocr_result):
         raise RuntimeError("refiner unavailable")
@@ -66,7 +66,7 @@ class Named(PageClassifier):
         return "named-double"
 
     def classify(self, sig, context=None):
-        return e1_result(sig)
+        return dc1_result(sig)
 
 
 def test_failing_classification_becomes_an_unknown_record(two_page_pdf):
@@ -91,7 +91,7 @@ def test_failing_refinement_becomes_an_unknown_record(two_page_pdf, monkeypatch)
     # Stub the OCR so the test needs no tesseract binary; what is under test is
     # the guard around refine_after_ocr, not the OCR itself.
     monkeypatch.setattr(
-        "doc_pipeline.pipeline.e3.extract",
+        "doc_pipeline.pipeline.dc3.extract",
         lambda page: {"text": "x", "word_count": 1, "mean_confidence": 91.0},
     )
     records = process_pdf(two_page_pdf, classifier=ExplodingRefiner())

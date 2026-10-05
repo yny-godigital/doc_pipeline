@@ -41,27 +41,27 @@ RETRYABLE_STATUS_CODES = frozenset({429, 500, 502, 503, 504, 529})
 #: The rubric Jev reads for each route option.
 #:
 #: These cannot be derived from the enum. `schema.py` documents routes with
-#: trailing `#` comments, and `ProcessingRoute.E1.__doc__` returns the class
+#: trailing `#` comments, and `ProcessingRoute.DC1.__doc__` returns the class
 #: docstring -- identical text for all seven members -- so reading a docstring
-#: here would hand the model the same paragraph five times. They are written by
-#: hand to push against each other, since the hard separations are E6 against
-#: E2, E6 against E1, and E1 against `unknown`.
+#: here would hand the model the same paragraph five times. They are written
+#: by hand to push against each other, since the hard separations are DC6
+#: against DC2, DC6 against DC1, and DC1 against `unknown`.
 ROUTE_CRITERIA = {
-    "E1": (
+    "DC1": (
         "Continuous prose: specification text, narrative notes, or "
         "semi-structured paragraphs. No ruled table structure and no diagram."
     ),
-    "E2": (
+    "DC2": (
         "Tabular content: rows and columns of values under a header row -- a "
         "schedule, a register, an IO point list. Detected by ruling lines or a "
         "repeating column structure."
     ),
-    "E3": (
+    "DC3": (
         "A scanned or flattened page with no usable native text layer. The "
         "content exists as raster images and must be OCR'd before it can be "
         "read. Includes handwritten pages, whatever their legibility."
     ),
-    "E6": (
+    "DC6": (
         "An engineering diagram or drawing: a floor plan, panel or sensor "
         "layout, P&ID, wiring or loop schematic. The content is in vector "
         "line-work and scattered labels, not in sentences."
@@ -75,11 +75,11 @@ ROUTE_CRITERIA = {
 
 #: The rubric for settling a scanned page as readable or as needing a human.
 LEGIBILITY_CRITERIA = {
-    "E3": (
+    "DC3": (
         "tesseract read the page reliably; the recognized text is coherent "
         "and complete"
     ),
-    "E5": (
+    "DC5": (
         "tesseract struggled; the text is garbled, partial, or not machine "
         "printed, so a human must re-read this page"
     ),
@@ -329,7 +329,7 @@ class JevClassifier(PageClassifier):
     def _parse_legibility(
         self, body: dict
     ) -> tuple[ProcessingRoute, str, float, str, int]:
-        """Read the E3-or-E5 decision, the tier and the confidence out of a response."""
+        """Read the DC3-or-DC5 route, tier and confidence from a response."""
         answers = (body or {}).get("answers") or {}
         legibility = answers.get("legibility")
         if not isinstance(legibility, dict) or "choice" not in legibility:
@@ -342,7 +342,7 @@ class JevClassifier(PageClassifier):
             )
 
         handwritten = (answers.get("handwritten") or {}).get("noul")
-        if option == "E3":
+        if option == "DC3":
             tier = "clean"
         elif isinstance(handwritten, (int, float)) and handwritten >= 0.5:
             tier = "handwritten"
@@ -375,12 +375,12 @@ class JevClassifier(PageClassifier):
     def refine_after_ocr(
         self, signals: PageSignals, result: ClassificationResult, ocr_result: dict
     ) -> ClassificationResult:
-        """Settle E3 against E5 using tesseract's actual output.
+        """Settle DC3 against DC5 using tesseract's actual output.
 
-        A page can only reach E5 from here. The pipeline's extraction chain has
-        no E5 branch, so a classifier that returned E5 from `classify` would
-        produce a record whose `extracted` dict is empty and which carries no
-        OCR output at all.
+        A page can only reach DC5 from here. The pipeline's extraction chain
+        has no DC5 branch, so a classifier that returned DC5 from `classify`
+        would produce a record whose `extracted` dict is empty and which
+        carries no OCR output at all.
 
         On failure the first-stage route is kept. The OCR result is already
         attached to the page by then, and losing the legibility call is a much

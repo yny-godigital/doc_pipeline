@@ -1,5 +1,5 @@
 """
-E2: tabular data.
+DC2: tabular data.
 
 Deterministic extraction via pdfplumber's ruling-line table detector, then a
 light normalization pass: merged/None cells from rowspans are forward-filled

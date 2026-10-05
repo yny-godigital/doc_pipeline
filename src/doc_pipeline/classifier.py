@@ -7,16 +7,16 @@ cheap, deterministic signals first, falling back to OCR-confidence quality
 checks only where those signals are ambiguous.
 
 Classification is two-stage. `classify()` picks a route from cheap signals;
-for a page routed to E3, `refine_after_ocr()` then settles E3 against E5 from
-real OCR output. Implementations needing no second stage inherit a no-op.
+for a page routed to DC3, `refine_after_ocr()` then settles DC3 against DC5
+from real OCR output. Implementations needing no second stage inherit a no-op.
 
 Route labels match schema.ProcessingRoute:
-    E1              text-heavy / semi-structured prose
-    E2              tabular
-    E3              scanned / flattened image, layout-aware OCR
-    E4              native CAD/DXF (not reachable from PDF pages; see note)
-    E5              low quality / handwritten
-    E6              engineering diagram (P&ID, floor plan, sensor layout)
+    DC1             text-heavy / semi-structured prose
+    DC2             tabular
+    DC3             scanned / flattened image, layout-aware OCR
+    DC4             native CAD/DXF (not reachable from PDF pages; see note)
+    DC5             low quality / handwritten
+    DC6             engineering diagram (P&ID, floor plan, sensor layout)
     unknown         page carries no extractable content of its own
 """
 
@@ -115,9 +115,9 @@ class PageClassifier(abc.ABC):
 
         Returns the whole result rather than a route and a tier so that an
         implementation can also revise confidence: a page that looked like a
-        0.6-confidence E3 and then OCRs cleanly is now a much more certain E3.
-        The default does nothing, which is the right answer for an
-        implementation that never routes a page to E3.
+        0.6-confidence DC3 and then OCRs cleanly is now a much more certain
+        DC3. The default does nothing, which is the right answer for an
+        implementation that never routes a page to DC3.
         """
         return result
 
@@ -175,7 +175,7 @@ def collect_signals(
     # the tabular content this route exists for. Require >=3 rows AND that
     # the table covers a non-trivial share of the page before it counts --
     # otherwise a prose page with a footer box gets misrouted wholesale to
-    # E2. This is a page-level proxy; true region-level splitting is a
+    # DC2. This is a page-level proxy; true region-level splitting is a
     # later refinement.
     has_table = False
     if plumber_page is not None:
@@ -242,7 +242,7 @@ class ThresholdClassifier(PageClassifier):
             sig.vector_path_count >= t.high_vector_path_count
         ):
             return ClassificationResult(
-                route=ProcessingRoute.E6,
+                route=ProcessingRoute.DC6,
                 quality_tier="clean",
                 confidence=0.9,
                 reason=f"large sheet ({sig.width_pt:.0f}x{sig.height_pt:.0f}pt) with "
@@ -259,7 +259,7 @@ class ThresholdClassifier(PageClassifier):
             sig.vector_path_count >= t.schematic_min_vector_paths
         ):
             return ClassificationResult(
-                route=ProcessingRoute.E6,
+                route=ProcessingRoute.DC6,
                 quality_tier="clean",
                 confidence=0.85,
                 reason=f"title block detected ({sig.title_block_hits} markers) with "
@@ -276,7 +276,7 @@ class ThresholdClassifier(PageClassifier):
             # Could still be a diagram at ordinary page size, or a scan.
             if sig.vector_path_count >= t.high_vector_path_count:
                 return ClassificationResult(
-                    route=ProcessingRoute.E6,
+                    route=ProcessingRoute.DC6,
                     quality_tier="clean",
                     confidence=0.7,
                     reason="vector-dense page with negligible text -> diagram at normal page size",
@@ -284,7 +284,7 @@ class ThresholdClassifier(PageClassifier):
                 )
             if sig.image_count > 0:
                 return ClassificationResult(
-                    route=ProcessingRoute.E3,
+                    route=ProcessingRoute.DC3,
                     # Settled by refine_after_ocr once OCR confidence is known.
                     quality_tier="unknown",
                     confidence=0.6,
@@ -307,7 +307,7 @@ class ThresholdClassifier(PageClassifier):
             and sig.text_chars >= t.min_text_chars_for_prose
         ):
             return ClassificationResult(
-                route=ProcessingRoute.E2,
+                route=ProcessingRoute.DC2,
                 quality_tier="clean",
                 confidence=0.75,
                 reason="ruled table detected alongside a real text layer -> tabular route",
@@ -315,7 +315,7 @@ class ThresholdClassifier(PageClassifier):
             )
 
         return ClassificationResult(
-            route=ProcessingRoute.E1,
+            route=ProcessingRoute.DC1,
             quality_tier="clean",
             confidence=0.8,
             reason="text-dominant page, no table structure, page size normal -> prose/semantic route",
@@ -323,15 +323,15 @@ class ThresholdClassifier(PageClassifier):
         )
 
     def refine_after_ocr(self, sig, result, ocr_result):
-        """Second pass for pages routed to E3: E3 or E5, decided on real OCR."""
+        """Second pass for DC3 pages: DC3 or DC5, decided on real OCR."""
         handwriting = bool(ocr_result.get("handwriting_detected", False))
         mean_confidence = float(ocr_result.get("mean_confidence", 0.0))
 
         if handwriting or mean_confidence < self.thresholds.low_ocr_confidence:
-            route = ProcessingRoute.E5
+            route = ProcessingRoute.DC5
             tier = "handwritten" if handwriting else "degraded"
         else:
-            route = ProcessingRoute.E3
+            route = ProcessingRoute.DC3
             tier = "clean"
 
         return ClassificationResult(

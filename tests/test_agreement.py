@@ -51,7 +51,7 @@ class FixedClassifier(PageClassifier):
 def test_identical_classifiers_agree_on_every_page(tmp_path):
     path = one_page_pdf(tmp_path)
     report = compare_classifiers(
-        [path], FixedClassifier("a", ProcessingRoute.E1), FixedClassifier("b", ProcessingRoute.E1)
+        [path], FixedClassifier("a", ProcessingRoute.DC1), FixedClassifier("b", ProcessingRoute.DC1)
     )
 
     assert report["totals"]["agreements"] == report["totals"]["pages"]
@@ -62,12 +62,12 @@ def test_identical_classifiers_agree_on_every_page(tmp_path):
 def test_a_disagreement_is_reported_with_both_decisions(tmp_path):
     path = one_page_pdf(tmp_path)
     report = compare_classifiers(
-        [path], FixedClassifier("a", ProcessingRoute.E1), FixedClassifier("b", ProcessingRoute.E6)
+        [path], FixedClassifier("a", ProcessingRoute.DC1), FixedClassifier("b", ProcessingRoute.DC6)
     )
 
     entry = report["documents"][0]["disagreements"][0]
-    assert entry["first"]["route"] == "E1"
-    assert entry["second"]["route"] == "E6"
+    assert entry["first"]["route"] == "DC1"
+    assert entry["second"]["route"] == "DC6"
     assert entry["page"] == 1
 
 
@@ -76,16 +76,16 @@ def test_the_pair_histogram_names_the_direction_of_change(tmp_path):
     # the disagreement at a glance, which a bare agreement percentage cannot.
     path = one_page_pdf(tmp_path)
     report = compare_classifiers(
-        [path], FixedClassifier("a", ProcessingRoute.UNKNOWN), FixedClassifier("b", ProcessingRoute.E6)
+        [path], FixedClassifier("a", ProcessingRoute.UNKNOWN), FixedClassifier("b", ProcessingRoute.DC6)
     )
 
-    assert report["totals"]["by_route_pair"] == {"unknown->E6": 1}
+    assert report["totals"]["by_route_pair"] == {"unknown->DC6": 1}
 
 
 def test_the_pair_histogram_counts_every_disagreement(tmp_path):
     path = one_page_pdf(tmp_path)
     report = compare_classifiers(
-        [path], FixedClassifier("a", ProcessingRoute.E1), FixedClassifier("b", ProcessingRoute.E6)
+        [path], FixedClassifier("a", ProcessingRoute.DC1), FixedClassifier("b", ProcessingRoute.DC6)
     )
 
     total = sum(report["totals"]["by_route_pair"].values())
@@ -95,7 +95,7 @@ def test_the_pair_histogram_counts_every_disagreement(tmp_path):
 def test_a_disagreement_carries_the_signals_that_produced_it(tmp_path):
     path = one_page_pdf(tmp_path, text=None)
     report = compare_classifiers(
-        [path], FixedClassifier("a", ProcessingRoute.E1), FixedClassifier("b", ProcessingRoute.E6)
+        [path], FixedClassifier("a", ProcessingRoute.DC1), FixedClassifier("b", ProcessingRoute.DC6)
     )
 
     entry = report["documents"][0]["disagreements"][0]
@@ -105,7 +105,7 @@ def test_a_disagreement_carries_the_signals_that_produced_it(tmp_path):
 def test_the_report_names_both_classifiers(tmp_path):
     path = one_page_pdf(tmp_path)
     report = compare_classifiers(
-        [path], FixedClassifier("threshold-x", ProcessingRoute.E1), FixedClassifier("jev-x", ProcessingRoute.E1)
+        [path], FixedClassifier("threshold-x", ProcessingRoute.DC1), FixedClassifier("jev-x", ProcessingRoute.DC1)
     )
 
     assert report["first_classifier"] == "threshold-x"
@@ -115,7 +115,7 @@ def test_the_report_names_both_classifiers(tmp_path):
 def test_format_report_warns_that_the_number_is_not_accuracy(tmp_path):
     path = one_page_pdf(tmp_path)
     report = compare_classifiers(
-        [path], FixedClassifier("a", ProcessingRoute.E1), FixedClassifier("b", ProcessingRoute.E1)
+        [path], FixedClassifier("a", ProcessingRoute.DC1), FixedClassifier("b", ProcessingRoute.DC1)
     )
 
     text = format_report(report)
@@ -127,10 +127,10 @@ def test_format_report_warns_that_the_number_is_not_accuracy(tmp_path):
 def test_format_report_shows_the_pair_histogram(tmp_path):
     path = one_page_pdf(tmp_path)
     report = compare_classifiers(
-        [path], FixedClassifier("a", ProcessingRoute.E1), FixedClassifier("b", ProcessingRoute.E2)
+        [path], FixedClassifier("a", ProcessingRoute.DC1), FixedClassifier("b", ProcessingRoute.DC2)
     )
 
-    assert "E1->E2" in format_report(report)
+    assert "DC1->DC2" in format_report(report)
 
 
 def test_compare_collects_signals_once_per_page(tmp_path, monkeypatch):
@@ -147,7 +147,7 @@ def test_compare_collects_signals_once_per_page(tmp_path, monkeypatch):
 
     monkeypatch.setattr("doc_pipeline.agreement.collect_signals", counting_collect)
     compare_classifiers(
-        [path], FixedClassifier("a", ProcessingRoute.E1), FixedClassifier("b", ProcessingRoute.E2)
+        [path], FixedClassifier("a", ProcessingRoute.DC1), FixedClassifier("b", ProcessingRoute.DC2)
     )
 
     assert len(calls) == 1
@@ -184,8 +184,8 @@ def test_a_tier_only_disagreement_is_still_a_disagreement(tmp_path):
     path = one_page_pdf(tmp_path)
     report = compare_classifiers(
         [path],
-        TieredClassifier("a", ProcessingRoute.E6, "clean"),
-        TieredClassifier("b", ProcessingRoute.E6, "degraded"),
+        TieredClassifier("a", ProcessingRoute.DC6, "clean"),
+        TieredClassifier("b", ProcessingRoute.DC6, "degraded"),
     )
 
     assert report["totals"]["agreements"] == 0
@@ -198,8 +198,8 @@ def test_a_tier_only_disagreement_prints_both_tiers(tmp_path):
     path = one_page_pdf(tmp_path)
     report = compare_classifiers(
         [path],
-        TieredClassifier("a", ProcessingRoute.E6, "clean"),
-        TieredClassifier("b", ProcessingRoute.E6, "degraded"),
+        TieredClassifier("a", ProcessingRoute.DC6, "clean"),
+        TieredClassifier("b", ProcessingRoute.DC6, "degraded"),
     )
 
     text = format_report(report)
@@ -210,7 +210,7 @@ def test_a_tier_only_disagreement_prints_both_tiers(tmp_path):
 def test_each_disagreement_line_names_which_classifier_is_which(tmp_path):
     path = one_page_pdf(tmp_path)
     report = compare_classifiers(
-        [path], FixedClassifier("threshold-x", ProcessingRoute.E6), FixedClassifier("jev-x", ProcessingRoute.E2)
+        [path], FixedClassifier("threshold-x", ProcessingRoute.DC6), FixedClassifier("jev-x", ProcessingRoute.DC2)
     )
 
     line = [
@@ -226,7 +226,7 @@ def test_each_disagreement_line_names_which_classifier_is_which(tmp_path):
 def test_the_histogram_heading_names_the_direction(tmp_path):
     path = one_page_pdf(tmp_path)
     report = compare_classifiers(
-        [path], FixedClassifier("threshold-x", ProcessingRoute.E6), FixedClassifier("jev-x", ProcessingRoute.E2)
+        [path], FixedClassifier("threshold-x", ProcessingRoute.DC6), FixedClassifier("jev-x", ProcessingRoute.DC2)
     )
 
     heading = [
@@ -243,8 +243,8 @@ def test_the_report_counts_pages_the_second_classifier_decided(tmp_path):
     path = one_page_pdf(tmp_path)
     report = compare_classifiers(
         [path],
-        FixedClassifier("a", ProcessingRoute.E1),
-        SourcedClassifier("jev-x", ProcessingRoute.E1, "jev"),
+        FixedClassifier("a", ProcessingRoute.DC1),
+        SourcedClassifier("jev-x", ProcessingRoute.DC1, "jev"),
     )
 
     assert report["totals"]["decided_by_source"] == {"jev": 1}
@@ -257,8 +257,8 @@ def test_the_report_counts_pages_that_fell_back_even_when_agreeing(tmp_path):
     path = one_page_pdf(tmp_path)
     report = compare_classifiers(
         [path],
-        FixedClassifier("a", ProcessingRoute.E1),
-        SourcedClassifier("jev-x", ProcessingRoute.E1, "threshold_fallback"),
+        FixedClassifier("a", ProcessingRoute.DC1),
+        SourcedClassifier("jev-x", ProcessingRoute.DC1, "threshold_fallback"),
     )
 
     assert report["totals"]["agreements"] == 1
@@ -269,8 +269,8 @@ def test_the_source_line_says_how_many_pages_jev_actually_decided(tmp_path):
     path = one_page_pdf(tmp_path)
     report = compare_classifiers(
         [path],
-        FixedClassifier("a", ProcessingRoute.E1),
-        SourcedClassifier("jev-x", ProcessingRoute.E1, "threshold_fallback"),
+        FixedClassifier("a", ProcessingRoute.DC1),
+        SourcedClassifier("jev-x", ProcessingRoute.DC1, "threshold_fallback"),
     )
 
     text = format_report(report)

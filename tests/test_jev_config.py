@@ -15,10 +15,10 @@ def test_default_endpoint_is_the_documented_systemone_url():
 
 
 def test_route_vocabulary_is_exactly_five_options():
-    # E5 is absent on purpose: pipeline.py has no E5 extraction branch, so a
-    # first-stage E5 would be written with an empty `extracted` dict and no OCR
-    # output. E4 is absent because it is unreachable from PDF pages.
-    assert set(ROUTE_CRITERIA) == {"E1", "E2", "E3", "E6", "unknown"}
+    # DC5 is absent on purpose: pipeline.py has no DC5 extraction branch, so a
+    # first-stage DC5 would be written with an empty `extracted` dict and no OCR
+    # output. DC4 is absent because it is unreachable from PDF pages.
+    assert set(ROUTE_CRITERIA) == {"DC1", "DC2", "DC3", "DC6", "unknown"}
 
 
 def test_every_route_option_carries_a_rubric():

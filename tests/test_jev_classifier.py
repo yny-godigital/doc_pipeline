@@ -31,7 +31,7 @@ def make_signals(**overrides) -> PageSignals:
     return PageSignals(**base)
 
 
-def response(choice="E2", confidence=0.81, quality="clean", **extra):
+def response(choice="DC2", confidence=0.81, quality="clean", **extra):
     body = {
         "model": "jev-1.13.0",
         "answers": {
@@ -39,7 +39,7 @@ def response(choice="E2", confidence=0.81, quality="clean", **extra):
                 "type": "choice",
                 "choice": choice,
                 "confidence": confidence,
-                "probabilities": {choice: 0.81, "E1": 0.19},
+                "probabilities": {choice: 0.81, "DC1": 0.19},
             },
             "quality": {
                 "type": "choice",
@@ -79,7 +79,7 @@ def test_request_offers_exactly_five_route_options():
     classifier_returning(response(), calls=calls).classify(make_signals())
 
     options = calls[0]["questions"]["route"]["criteria"]
-    assert set(options) == {"E1", "E2", "E3", "E6", "unknown"}
+    assert set(options) == {"DC1", "DC2", "DC3", "DC6", "unknown"}
 
 
 def test_request_asks_for_route_and_quality_together():
@@ -154,9 +154,9 @@ def test_state_survives_a_page_with_no_text():
 
 
 def test_chosen_option_becomes_the_route():
-    result = classifier_returning(response(choice="E2")).classify(make_signals())
+    result = classifier_returning(response(choice="DC2")).classify(make_signals())
 
-    assert result.route == ProcessingRoute.E2
+    assert result.route == ProcessingRoute.DC2
 
 
 def test_unknown_option_becomes_the_unknown_route():
@@ -221,7 +221,7 @@ def test_name_is_jev():
 
 def test_server_error_is_retried_then_succeeds():
     attempts = []
-    bodies = [RuntimeError("Jev API returned 503"), response(choice="E1")]
+    bodies = [RuntimeError("Jev API returned 503"), response(choice="DC1")]
 
     def transport(endpoint, payload, headers, timeout):
         attempts.append(1)
@@ -234,7 +234,7 @@ def test_server_error_is_retried_then_succeeds():
     result = JevClassifier(config=config, transport=transport).classify(make_signals())
 
     assert len(attempts) == 2
-    assert result.route == ProcessingRoute.E1
+    assert result.route == ProcessingRoute.DC1
     assert result.signals["jev_route_source"] == "jev"
 
 
@@ -277,7 +277,7 @@ def test_transport_failure_falls_back_to_the_threshold_decision():
 
     # The page keeps the decision the threshold tree would have made, rather
     # than becoming a blank `unknown` record.
-    assert result.route == ProcessingRoute.E2
+    assert result.route == ProcessingRoute.DC2
     assert result.signals["jev_route_source"] == "threshold_fallback"
 
 
@@ -305,7 +305,7 @@ def test_missing_route_answer_falls_back():
 
 
 def test_option_outside_the_vocabulary_falls_back():
-    result = classifier_returning(response(choice="E7")).classify(make_signals())
+    result = classifier_returning(response(choice="DC7")).classify(make_signals())
 
     assert result.signals["jev_route_source"] == "threshold_fallback"
 
@@ -328,7 +328,7 @@ def ocr_result(**overrides):
     return result
 
 
-def legibility_response(choice="E3", confidence=0.9, handwritten=0.05):
+def legibility_response(choice="DC3", confidence=0.9, handwritten=0.05):
     return {
         "model": "jev-1.13.0",
         "answers": {
@@ -344,11 +344,11 @@ def legibility_response(choice="E3", confidence=0.9, handwritten=0.05):
     }
 
 
-def e3_result():
+def dc3_result():
     from doc_pipeline.classifier import ClassificationResult
 
     return ClassificationResult(
-        route=ProcessingRoute.E3,
+        route=ProcessingRoute.DC3,
         quality_tier="unknown",
         confidence=0.6,
         reason="scanned page, route to OCR",
@@ -356,40 +356,40 @@ def e3_result():
     )
 
 
-def test_a_cleanly_read_scan_stays_e3():
+def test_a_cleanly_read_scan_stays_dce3():
     calls = []
-    classifier = classifier_returning(legibility_response(choice="E3"), calls=calls)
-    refined = classifier.refine_after_ocr(make_signals(), e3_result(), ocr_result())
+    classifier = classifier_returning(legibility_response(choice="DC3"), calls=calls)
+    refined = classifier.refine_after_ocr(make_signals(), dc3_result(), ocr_result())
 
-    assert refined.route == ProcessingRoute.E3
+    assert refined.route == ProcessingRoute.DC3
     assert refined.quality_tier == "clean"
     assert calls[0]["questions"]["legibility"]["type"] == "choice"
-    assert set(calls[0]["questions"]["legibility"]["criteria"]) == {"E3", "E5"}
+    assert set(calls[0]["questions"]["legibility"]["criteria"]) == {"DC3", "DC5"}
 
 
-def test_a_badly_read_scan_becomes_e5():
-    classifier = classifier_returning(legibility_response(choice="E5"))
-    refined = classifier.refine_after_ocr(make_signals(), e3_result(), ocr_result())
+def test_a_badly_read_scan_becomes_dce5():
+    classifier = classifier_returning(legibility_response(choice="DC5"))
+    refined = classifier.refine_after_ocr(make_signals(), dc3_result(), ocr_result())
 
-    assert refined.route == ProcessingRoute.E5
+    assert refined.route == ProcessingRoute.DC5
     assert refined.quality_tier == "degraded"
 
 
 def test_a_handwritten_scan_is_tiered_as_handwritten():
     classifier = classifier_returning(
-        legibility_response(choice="E5", handwritten=0.93)
+        legibility_response(choice="DC5", handwritten=0.93)
     )
-    refined = classifier.refine_after_ocr(make_signals(), e3_result(), ocr_result())
+    refined = classifier.refine_after_ocr(make_signals(), dc3_result(), ocr_result())
 
     assert refined.quality_tier == "handwritten"
 
 
 def test_refinement_takes_its_own_confidence():
     # The threshold classifier carries the first-stage confidence through, so a
-    # page that looked like a 0.6-confidence E3 and then OCRs cleanly stays 0.6.
+    # page that looked like a 0.6-confidence DC3 and then OCRs cleanly stays 0.6.
     # The second decision is a real decision and gets its own number.
     classifier = classifier_returning(legibility_response(confidence=0.94))
-    refined = classifier.refine_after_ocr(make_signals(), e3_result(), ocr_result())
+    refined = classifier.refine_after_ocr(make_signals(), dc3_result(), ocr_result())
 
     assert refined.confidence == pytest.approx(0.94)
 
@@ -398,7 +398,7 @@ def test_refinement_sends_the_recognized_text():
     calls = []
     classifier = classifier_returning(legibility_response(), calls=calls)
     classifier.refine_after_ocr(
-        make_signals(), e3_result(), ocr_result(text="Z" * 5000)
+        make_signals(), dc3_result(), ocr_result(text="Z" * 5000)
     )
 
     assert calls[0]["state"].count("Z") == 1000
@@ -407,13 +407,13 @@ def test_refinement_sends_the_recognized_text():
 def test_refinement_reports_the_ocr_mean_confidence_in_its_state():
     calls = []
     classifier = classifier_returning(legibility_response(), calls=calls)
-    classifier.refine_after_ocr(make_signals(), e3_result(), ocr_result())
+    classifier.refine_after_ocr(make_signals(), dc3_result(), ocr_result())
 
     assert "41.3" in calls[0]["state"]
 
 
 def test_a_failed_refinement_keeps_the_first_stage_route():
-    # Losing the E3-versus-E5 call is not worth losing the OCR result the
+    # Losing the DC3-versus-DC5 call is not worth losing the OCR result the
     # pipeline has already attached, so the page stays on its first-stage route.
     def transport(endpoint, payload, headers, timeout):
         raise RuntimeError("connection reset")
@@ -422,14 +422,14 @@ def test_a_failed_refinement_keeps_the_first_stage_route():
         config=JevConfig(api_key="k", max_attempts=1, base_backoff_seconds=0.0),
         transport=transport,
     )
-    refined = classifier.refine_after_ocr(make_signals(), e3_result(), ocr_result())
+    refined = classifier.refine_after_ocr(make_signals(), dc3_result(), ocr_result())
 
-    assert refined.route == ProcessingRoute.E3
+    assert refined.route == ProcessingRoute.DC3
     assert "connection reset" in refined.signals["jev_error"]
 
 
 def test_a_malformed_refinement_keeps_the_first_stage_route():
     classifier = classifier_returning({"model": "jev-1.13.0", "answers": {}})
-    refined = classifier.refine_after_ocr(make_signals(), e3_result(), ocr_result())
+    refined = classifier.refine_after_ocr(make_signals(), dc3_result(), ocr_result())
 
-    assert refined.route == ProcessingRoute.E3
+    assert refined.route == ProcessingRoute.DC3

@@ -49,7 +49,7 @@ def classifier():
 
 def test_large_dense_sheet_is_an_engineering_diagram(classifier):
     result = classifier.classify(signals(area_pt2=1_600_000, vector_path_count=5_000))
-    assert result.route == ProcessingRoute.E6
+    assert result.route == ProcessingRoute.DC6
     assert result.confidence == 0.9
 
 
@@ -57,19 +57,19 @@ def test_title_block_with_linework_is_an_engineering_schematic(classifier):
     # An A4 electrical schematic: ordinary page size, but a title block and
     # enough vector work to rule out prose.
     result = classifier.classify(signals(title_block_hits=3, vector_path_count=150))
-    assert result.route == ProcessingRoute.E6
+    assert result.route == ProcessingRoute.DC6
     assert result.confidence == 0.85
 
 
 def test_vector_dense_page_without_text_is_a_diagram(classifier):
     result = classifier.classify(signals(text_chars=100, vector_path_count=5_000))
-    assert result.route == ProcessingRoute.E6
+    assert result.route == ProcessingRoute.DC6
     assert result.confidence == 0.7
 
 
 def test_image_page_without_text_layer_is_routed_to_ocr(classifier):
     result = classifier.classify(signals(text_chars=100, image_count=1))
-    assert result.route == ProcessingRoute.E3
+    assert result.route == ProcessingRoute.DC3
     # The tier is a placeholder here: refine_after_ocr settles it once OCR
     # confidence is known.
     assert result.quality_tier == "unknown"
@@ -83,7 +83,7 @@ def test_empty_page_is_unknown(classifier):
 
 def test_detected_table_is_tabular(classifier):
     result = classifier.classify(signals(has_table_via_pdfplumber=True))
-    assert result.route == ProcessingRoute.E2
+    assert result.route == ProcessingRoute.DC2
     assert result.confidence == 0.75
 
 
@@ -91,12 +91,12 @@ def test_ruled_lines_around_prose_are_tabular(classifier):
     # No ruling-line table detected, but the vector count sits in the band
     # ordinary ruled tables occupy.
     result = classifier.classify(signals(vector_path_count=150))
-    assert result.route == ProcessingRoute.E2
+    assert result.route == ProcessingRoute.DC2
 
 
 def test_text_dominant_page_is_prose(classifier):
     result = classifier.classify(signals())
-    assert result.route == ProcessingRoute.E1
+    assert result.route == ProcessingRoute.DC1
     assert result.confidence == 0.8
 
 
@@ -110,32 +110,32 @@ def test_result_carries_a_copy_of_the_signals_that_decided_it(classifier):
 
 
 class TestRefineAfterOcr:
-    def _e3_result(self, classifier):
+    def _dc3_result(self, classifier):
         return classifier.classify(signals(text_chars=100, image_count=1))
 
     def test_low_confidence_ocr_becomes_degraded(self, classifier):
-        result = self._e3_result(classifier)
+        result = self._dc3_result(classifier)
         refined = classifier.refine_after_ocr(
             signals(), result, {"mean_confidence": 40.0}
         )
-        assert (refined.route, refined.quality_tier) == (ProcessingRoute.E5, "degraded")
+        assert (refined.route, refined.quality_tier) == (ProcessingRoute.DC5, "degraded")
 
     def test_handwriting_is_its_own_tier(self, classifier):
-        result = self._e3_result(classifier)
+        result = self._dc3_result(classifier)
         refined = classifier.refine_after_ocr(
             signals(), result, {"mean_confidence": 95.0, "handwriting_detected": True}
         )
         assert (refined.route, refined.quality_tier) == (
-            ProcessingRoute.E5,
+            ProcessingRoute.DC5,
             "handwritten",
         )
 
     def test_good_ocr_stays_clean(self, classifier):
-        result = self._e3_result(classifier)
+        result = self._dc3_result(classifier)
         refined = classifier.refine_after_ocr(
             signals(), result, {"mean_confidence": 92.0}
         )
-        assert (refined.route, refined.quality_tier) == (ProcessingRoute.E3, "clean")
+        assert (refined.route, refined.quality_tier) == (ProcessingRoute.DC3, "clean")
         # The pre-OCR confidence survives the refinement.
         assert refined.confidence == result.confidence
 
@@ -149,7 +149,7 @@ class TestInterfaceDefaults:
 
             def classify(self, sig, context=None):
                 return ClassificationResult(
-                    route=ProcessingRoute.E1,
+                    route=ProcessingRoute.DC1,
                     quality_tier="clean",
                     confidence=0.5,
                     reason="test double",
@@ -167,5 +167,5 @@ class TestInterfaceDefaults:
         # 300 characters clears the tuned 250 floor but not the default 400 one,
         # so the same page is prose under the tuned thresholds and unknown
         # under the defaults.
-        assert tuned.classify(page).route == ProcessingRoute.E1
+        assert tuned.classify(page).route == ProcessingRoute.DC1
         assert ThresholdClassifier().classify(page).route == ProcessingRoute.UNKNOWN

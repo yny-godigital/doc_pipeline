@@ -26,10 +26,10 @@ from .classifier import (
 from .schema import ProcessingRoute, make_record
 from .guessers import DocumentTypeGuesser, DEFAULT_GUESSER
 
-# Extractor modules are named after the route they serve. E5 has no module --
-# ocr_quality_check() reclassifies a weak E3 page as E5 and it keeps e3's
+# Extractor modules are named after the route they serve. DC5 has no module --
+# ocr_quality_check() reclassifies a weak DC3 page as DC5 and it keeps dc3's
 # OCR output rather than being re-extracted.
-from .extractors import e1, e2, e3, e6
+from .extractors import dc1, dc2, dc3, dc6
 
 
 def _failed_result(classifier: PageClassifier, exc: Exception) -> ClassificationResult:
@@ -116,24 +116,24 @@ def process_pdf(
             extracted = {}
             extraction_confidence = result.confidence
 
-            if route == ProcessingRoute.E1:
-                extracted = e1.extract(page.get_text())
+            if route == ProcessingRoute.DC1:
+                extracted = dc1.extract(page.get_text())
                 extraction_confidence = 0.85
 
-            elif route == ProcessingRoute.E2:
+            elif route == ProcessingRoute.DC2:
                 extracted = (
-                    e2.extract(plumber_page)
+                    dc2.extract(plumber_page)
                     if plumber_page
                     else {"table_count": 0, "tables": []}
                 )
-                # Text-heavy pages routed to E2 usually have prose around the
+                # Text-heavy pages routed to DC2 usually have prose around the
                 # table too -- capture it so nothing is lost.
                 extracted["surrounding_text"] = page.get_text().strip()
                 extraction_confidence = 0.75
 
-            elif route == ProcessingRoute.E3:
-                ocr = e3.extract(page)
-                # The classifier settles E3 against E5 using real OCR output
+            elif route == ProcessingRoute.DC3:
+                ocr = dc3.extract(page)
+                # The classifier settles DC3 against DC5 using real OCR output
                 # and returns a whole result, so the pipeline takes its route,
                 # tier and revised confidence together.
                 result = _refine_safely(classifier, sig, result, ocr, i)
@@ -141,8 +141,8 @@ def process_pdf(
                 extracted = ocr
                 extraction_confidence = ocr["mean_confidence"] / 100.0
 
-            elif route == ProcessingRoute.E6:
-                extracted = e6.extract(page)
+            elif route == ProcessingRoute.DC6:
+                extracted = dc6.extract(page)
                 extraction_confidence = 0.7  # geometry extraction is deterministic;
                 # confidence caps here because symbol ID / graph build hasn't run
 

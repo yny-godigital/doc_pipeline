@@ -1,5 +1,5 @@
 """
-E1: text-heavy / semi-structured prose.
+DC1: text-heavy / semi-structured prose.
 
 Chunks by structure (numbered headings), not fixed token windows, so each
 chunk is a coherent unit an LLM can extract semantics from independently.

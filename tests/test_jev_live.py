@@ -51,9 +51,9 @@ def test_a_tabular_page_is_routed_by_the_real_api():
     result = JevClassifier(config=JevConfig.from_env()).classify(signals)
 
     # This page is unambiguously tabular: a ruled table, repeating column
-    # headers, no images and almost no line-work. Anything other than E2 means
+    # headers, no images and almost no line-work. Anything other than DC2 means
     # the request was malformed or the rubrics are not doing their job.
-    assert result.route == ProcessingRoute.E2
+    assert result.route == ProcessingRoute.DC2
     assert result.signals["jev_route_source"] == "jev"
     assert result.signals["jev_model"]
     assert result.signals["jev_input_tokens"] > 0
@@ -77,7 +77,7 @@ def test_the_second_stage_is_accepted_by_the_real_api():
         embedded_font_count=0,
     )
     first_stage = ClassificationResult(
-        route=ProcessingRoute.E3,
+        route=ProcessingRoute.DC3,
         quality_tier="unknown",
         confidence=0.6,
         reason="scanned page, route to OCR",
@@ -93,6 +93,6 @@ def test_the_second_stage_is_accepted_by_the_real_api():
         signals, first_stage, ocr
     )
 
-    # Clean OCR of a full sentence of machine-printed text should stay E3.
-    assert result.route == ProcessingRoute.E3
+    # Clean OCR of a full sentence of machine-printed text should stay DC3.
+    assert result.route == ProcessingRoute.DC3
     assert result.quality_tier == "clean"

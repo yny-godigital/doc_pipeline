@@ -1,11 +1,11 @@
 """
-E3 (and the OCR half of E5): layout-aware OCR for scanned / flattened pages.
+DC3 (and the OCR half of DC5): layout-aware OCR for scanned / flattened pages.
 
 Renders the PDF page to a raster image at a resolution good enough for OCR,
 then runs tesseract with layout preservation (page segmentation mode 3:
 "fully automatic page segmentation, no OSD"). Returns per-block text plus a
 mean confidence score, which the classifier's ocr_quality_check() uses to
-decide whether this page should actually be reclassified as E5.
+decide whether this page should actually be reclassified as DC5.
 
 Swap `run_tesseract` for a call to a layout-aware VLM (e.g. a hosted
 document-intelligence endpoint) if tesseract's layout handling proves too
