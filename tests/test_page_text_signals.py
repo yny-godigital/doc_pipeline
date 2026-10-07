@@ -7,11 +7,8 @@ they must reach classifiers without ever being copied into a record.
 
 import pymupdf
 
-from doc_pipeline.classifier import (
-    PageSignals,
-    ThresholdClassifier,
-    collect_signals,
-)
+from doc_pipeline.classifier import PageSignals
+from doc_pipeline.threshold_classifier import ThresholdClassifier, collect_signals
 
 
 def test_page_signals_carry_page_text():

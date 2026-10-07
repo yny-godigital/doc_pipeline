@@ -24,7 +24,8 @@ import pdfplumber
 import pymupdf
 from dotenv import load_dotenv
 
-from .classifier import PageClassifier, collect_signals
+from .classifier import PageClassifier
+from .threshold_classifier import ThresholdClassifier, collect_signals
 
 
 def _decision(result) -> dict:
@@ -226,7 +227,7 @@ def main() -> None:
         print("\nUsage: doc-pipeline-agreement <pdf> [<pdf> ...]")
         sys.exit(1)
 
-    from .classifier import ThresholdClassifier, resolve_classifier
+    from .classifier import resolve_classifier
 
     report = compare_classifiers(
         sys.argv[1:], ThresholdClassifier(), resolve_classifier()

@@ -11,9 +11,8 @@ import pytest
 from doc_pipeline.classifier import (
     ClassificationResult,
     PageClassifier,
-    Thresholds,
-    ThresholdClassifier,
 )
+from doc_pipeline.threshold_classifier import Thresholds, ThresholdClassifier
 from doc_pipeline.schema import ProcessingRoute
 
 

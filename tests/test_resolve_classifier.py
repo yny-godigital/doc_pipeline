@@ -2,7 +2,8 @@
 
 import pytest
 
-from doc_pipeline.classifier import ThresholdClassifier, resolve_classifier
+from doc_pipeline.classifier import resolve_classifier
+from doc_pipeline.threshold_classifier import ThresholdClassifier
 
 
 def test_defaults_to_the_threshold_classifier(monkeypatch):

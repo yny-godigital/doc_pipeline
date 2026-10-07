@@ -21,8 +21,8 @@ from .classifier import (
     ClassificationResult,
     PageClassifier,
     PageSignals,
-    ThresholdClassifier,
 )
+from .threshold_classifier import ThresholdClassifier
 from .schema import ProcessingRoute
 
 #: Environment variable holding the bearer token for api.typesafe.ai.

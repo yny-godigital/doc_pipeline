@@ -11,8 +11,8 @@ from doc_pipeline.agreement import compare_classifiers, format_report
 from doc_pipeline.classifier import (
     ClassificationResult,
     PageClassifier,
-    collect_signals,
 )
+from doc_pipeline.threshold_classifier import collect_signals
 from doc_pipeline.schema import ProcessingRoute
 
 

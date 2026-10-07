@@ -20,9 +20,9 @@ from dotenv import load_dotenv
 from .classifier import (
     ClassificationResult,
     PageClassifier,
-    collect_signals,
     resolve_classifier,
 )
+from .threshold_classifier import collect_signals
 from .schema import ProcessingRoute, make_record
 from .guessers import DocumentTypeGuesser, DEFAULT_GUESSER
 
